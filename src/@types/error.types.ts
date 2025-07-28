@@ -1,0 +1,8 @@
+export enum DbError {
+  DUPLICATE_ERROR = 'E11000 duplicate key error collection',
+}
+
+export enum ErrorCode {
+  INVALID_LOGIN_CRED = 401001,
+  USER_NOT_FOUND = 404001,
+}

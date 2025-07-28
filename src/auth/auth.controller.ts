@@ -1,6 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  InternalServerErrorException,
+  Post,
+} from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -8,6 +14,23 @@ export class AuthController {
 
   @Post('signup')
   async signup(@Body() dto: SignupDto) {
-    return this.authService.signup(dto.email, dto.password);
+    try {
+      const result = await this.authService.signup(dto.email, dto.password);
+      return result;
+    } catch (error) {
+      if (error.status) throw error;
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    try {
+      const result = await this.authService.login(loginDto);
+      return result;
+    } catch (error) {
+      if (error.status) throw error;
+      throw new InternalServerErrorException();
+    }
   }
 }
