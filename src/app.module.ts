@@ -6,13 +6,35 @@ import { AuthModule } from './auth/auth.module';
 import { TasksModule } from './tasks/tasks.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import * as dotenv from 'dotenv';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import configuration from '../config';
+import { TimestampPlugin } from './common/plugins/timestamp.plugin';
 
 dotenv.config();
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://mongo:27017/inno-task-tracker'),
-    HealthModule, AuthModule, TasksModule],
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+    }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          uri: config.get<string>('mongodb.url'),
+          connectionFactory: (connection) => {
+            connection.plugin(TimestampPlugin);
+
+            return connection;
+          },
+        };
+      },
+    }),
+    HealthModule,
+    AuthModule,
+    TasksModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
