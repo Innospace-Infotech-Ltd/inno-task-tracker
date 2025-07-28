@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
@@ -9,6 +9,7 @@ import * as dotenv from 'dotenv';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../config';
 import { TimestampPlugin } from './common/plugins/timestamp.plugin';
+import { APP_PIPE } from '@nestjs/core';
 
 dotenv.config();
 
@@ -36,6 +37,14 @@ dotenv.config();
     TasksModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        whitelist: true,
+      }),
+    },
+    AppService,
+  ],
 })
 export class AppModule {}

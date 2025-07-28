@@ -1,4 +1,4 @@
-import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export enum TaskStatus {
@@ -7,15 +7,15 @@ export enum TaskStatus {
   DONE = 'DONE',
 }
 
-@Schema({ timestamps: true })
+@Schema()
 export class Task extends Document {
   @Prop({ required: true })
   title: string;
 
-  @Prop()
+  @Prop({ required: false })
   description?: string;
 
-  @Prop()
+  @Prop({ required: false })
   dueDate?: Date;
 
   @Prop({ enum: TaskStatus, default: TaskStatus.OPEN })
@@ -23,3 +23,4 @@ export class Task extends Document {
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
+TaskSchema.index({ status: 1 });
