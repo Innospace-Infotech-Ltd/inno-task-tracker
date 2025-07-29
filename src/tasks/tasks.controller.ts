@@ -10,12 +10,14 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TasksService } from './tasks.service';
 import { TaskQueryDto } from './dto/task-query.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { ErrorCode } from 'src/@types/error.types';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('tasks')
 export class TasksController {
@@ -26,6 +28,7 @@ export class TasksController {
     throw new HttpException('Not implemented', HttpStatus.NOT_IMPLEMENTED);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   async createTask(@Body() taskData: CreateTaskDto) {
     try {
@@ -36,6 +39,8 @@ export class TasksController {
       throw new InternalServerErrorException();
     }
   }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   async getTasks(@Query() query: TaskQueryDto) {
     try {
@@ -47,6 +52,7 @@ export class TasksController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   async updateTask(
     @Param('id') _id: string,

@@ -1,15 +1,14 @@
-import { Module, ValidationPipe } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { HealthModule } from './health/health.module';
-import { AuthModule } from './auth/auth.module';
-import { TasksModule } from './tasks/tasks.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import * as dotenv from 'dotenv';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../config';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { TimestampPlugin } from './common/plugins/timestamp.plugin';
-import { APP_PIPE } from '@nestjs/core';
+import { HealthModule } from './health/health.module';
+import { TasksModule } from './tasks/tasks.module';
 
 dotenv.config();
 
@@ -37,14 +36,6 @@ dotenv.config();
     TasksModule,
   ],
   controllers: [AppController],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useValue: new ValidationPipe({
-        whitelist: true,
-      }),
-    },
-    AppService,
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
