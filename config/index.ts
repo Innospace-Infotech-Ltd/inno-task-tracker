@@ -8,6 +8,7 @@ export default () => {
       SECURITY_JWT_TTL: Joi.number().required(),
       MONGO_URI: Joi.string().required(),
       REDIS_URL: Joi.string().required(),
+      REDIS_CACHE_TTL: Joi.number().default(60),
     })
     .unknown(true);
 
@@ -27,6 +28,7 @@ export default () => {
     },
     redis: {
       url: value.REDIS_URL,
+      redisCacheTTL: value.REDIS_CACHE_TTL,
     },
   };
 };

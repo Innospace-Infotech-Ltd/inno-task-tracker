@@ -52,6 +52,7 @@ export class TasksController {
         `[GET /tasks] Successfully fetched ${tasks?.meta?.total} tasks.`,
         TasksController.name,
       );
+
       return tasks;
     } catch (error) {
       if (error.status) throw error;
