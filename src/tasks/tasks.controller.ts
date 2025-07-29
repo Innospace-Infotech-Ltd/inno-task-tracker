@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TasksService } from './tasks.service';
+import { TaskQueryDto } from './dto/task-query.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -31,9 +32,17 @@ export class TasksController {
       throw new InternalServerErrorException();
     }
   }
-  @Get() list(@Query() _q: any) {
-    this.notImpl();
+  @Get()
+  async getTasks(@Query() query: TaskQueryDto) {
+    try {
+      const tasks = await this.tasksService.getTasks(query);
+      return tasks;
+    } catch (error) {
+      if (error.status) throw error;
+      throw new InternalServerErrorException();
+    }
   }
+
   @Patch(':id/status') update(@Param('id') _id: string, @Body() _dto: any) {
     this.notImpl();
   }

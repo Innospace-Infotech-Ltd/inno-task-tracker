@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsDateString, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -26,6 +26,6 @@ export class CreateTaskDto {
     description: 'Due date for the task',
   })
   @IsOptional()
-  @IsString()
-  dueDate?: string;
+  @IsDateString()
+  dueDate?: Date;
 }
