@@ -1,16 +1,16 @@
 import {
-  Injectable,
   ConflictException,
   HttpException,
   HttpStatus,
+  Injectable,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
-import { Model, Types } from 'mongoose';
-import * as bcrypt from 'bcrypt';
-import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
+import { Model, Types } from 'mongoose';
+import { ILoggedIn } from 'src/@types/auth.type';
 import { ErrorCode } from 'src/@types/error.types';
+import { User } from './schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -30,7 +30,7 @@ export class AuthService {
     };
   }
 
-  async login(loginData: LoginDto) {
+  async login(loginData: ILoggedIn) {
     const user = await this.findByEmail(loginData.email);
     if (!user) {
       throw new HttpException(

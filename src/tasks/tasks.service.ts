@@ -1,11 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Task } from './schemas/task.schema';
-import { Model } from 'mongoose';
-import { TaskQueryDto } from './dto/task-query.dto';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import Redis from 'ioredis';
+import { Model } from 'mongoose';
+import { IFindTask } from 'src/@types/task.type';
+import { Task } from './schemas/task.schema';
 
 @Injectable()
 export class TasksService {
@@ -16,12 +15,12 @@ export class TasksService {
     private readonly redis: Redis,
   ) {}
 
-  async createTask(taskData: CreateTaskDto) {
+  async createTask(taskData: Partial<Task>) {
     const createdTask = new this.taskModel(taskData);
     return await createdTask.save();
   }
 
-  async getTasks(query: Partial<TaskQueryDto>) {
+  async getTasks(query: IFindTask) {
     const { status, dueFrom, dueTo, search, page = '1', limit = '10' } = query;
     const filter: any = {};
 
