@@ -1,10 +1,12 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
+@Throttle({ default: { limit: 5, ttl: 30000 } })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
