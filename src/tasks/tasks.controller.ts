@@ -1,10 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, UpdateTaskStatusDto } from './dto/create-task.dto';
 import { TaskStatus } from './schemas/task.schema';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('tasks')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
@@ -13,8 +16,8 @@ export class TasksController {
   @ApiOperation({ summary: 'Create a new task' })
   @ApiResponse({ status: 201, description: 'Task created successfully.' })
   @ApiResponse({ status: 400, description: 'Invalid input data.' })
-  async create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.createTask(createTaskDto);
+  async create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
+    return this.tasksService.createTask(createTaskDto, req.user.userId);
   }
 
   @Get()
@@ -33,8 +36,11 @@ export class TasksController {
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Request() req?,
   ) {
     return this.tasksService.findAll(
+      req.user.userId,
+      req.user.roles,
       status,
       dueFrom,
       dueTo,
@@ -51,7 +57,8 @@ export class TasksController {
   async update(
     @Param('id') id: string,
     @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+    @Request() req
   ) {
-    return this.tasksService.updateTaskStatus(id, updateTaskStatusDto.status);
+    return this.tasksService.updateTaskStatus(id, updateTaskStatusDto.status, req.user.userId, req.user.roles);
   }
 }

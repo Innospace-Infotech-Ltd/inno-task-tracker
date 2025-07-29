@@ -22,14 +22,16 @@ describe('/auth/signup', () => {
     await app.close();
   });
 
-  it('signs up a user', async () => {
+
+
+  it('signs up a user with roles', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/signup')
-      .send({ email: 'a@a.com', password: 'secret123' })
+      .send({ email: 'admin@a.com', password: 'secret123', roles: ['admin'] })
       .expect(201);
 
     expect(res.body).toHaveProperty('id');
-    expect(res.body.email).toBe('a@a.com');
+    expect(res.body.email).toBe('admin@a.com');
   });
 
   it('rejects duplicate email', async () => {

@@ -1,5 +1,5 @@
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum TaskStatus {
@@ -25,6 +25,12 @@ export class Task extends Document {
   @ApiProperty({ example: 'OPEN', enum: TaskStatus, description: 'Task status' })
   @Prop({ enum: TaskStatus, default: TaskStatus.OPEN })
   status: TaskStatus;
+
+  @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'User ID who owns this task' })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
+
+TaskSchema.index({ userId: 1, title: 1 });

@@ -12,20 +12,23 @@ export class TasksService {
     private readonly redisService: RedisService,
   ) {}
 
-  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
     const createdTask = new this.taskModel({
       ...createTaskDto,
       status: createTaskDto.status || TaskStatus.OPEN,
+      userId: userId,
     });
     const task = await createdTask.save();
     
-    // Invalidate task list cache
-    await this.redisService.delPattern('tasks:*');
+    // Invalidate task list cache for this user
+    await this.redisService.delPattern(`tasks:user:${userId}:*`);
     
     return task;
   }
 
   async findAll(
+    userId: string,
+    userRoles: string[],
     status?: TaskStatus,
     dueFrom?: string,
     dueTo?: string,
@@ -33,15 +36,17 @@ export class TasksService {
     page: number = 1,
     limit: number = 10,
   ) {
-    const cacheKey = `tasks:${JSON.stringify({ status, dueFrom, dueTo, search, page, limit })}`;
+    const isAdmin = userRoles.includes('admin');
+    const cacheKey = isAdmin 
+      ? `tasks:admin:${JSON.stringify({ status, dueFrom, dueTo, search, page, limit })}`
+      : `tasks:user:${userId}:${JSON.stringify({ status, dueFrom, dueTo, search, page, limit })}`;
     
-    // Try to get from cache
     const cached = await this.redisService.get(cacheKey);
     if (cached) {
       return JSON.parse(cached);
     }
 
-    const query: any = {};
+    const query: any = isAdmin ? {} : { userId };
     if (status) query.status = status;
     if (search) query.title = { $regex: search, $options: 'i' };
     if (dueFrom || dueTo) {
@@ -72,14 +77,22 @@ export class TasksService {
     return result;
   }
 
-  async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-    const task = await this.taskModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
+  async updateTaskStatus(id: string, status: TaskStatus, userId: string, userRoles: string[]): Promise<Task> {
+    const isAdmin = userRoles.includes('admin');
+    const query = isAdmin ? { _id: id } : { _id: id, userId: userId };
+    
+    const task = await this.taskModel.findOneAndUpdate(
+      query,
+      { status },
+      { new: true }
+    ).exec();
     if (!task) {
-      throw new NotFoundException('Task not found');
+      throw new NotFoundException('Task not found or not owned by user');
     }
     
-    // Invalidate task list cache
-    await this.redisService.delPattern('tasks:*');
+    // Invalidate both admin and user caches
+    await this.redisService.delPattern('tasks:admin:*');
+    await this.redisService.delPattern('tasks:user:*');
     
     return task;
   }
