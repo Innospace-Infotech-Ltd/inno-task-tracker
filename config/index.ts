@@ -6,9 +6,7 @@ export default () => {
       SECURITY_BCRYPT_ROUND: Joi.number().default(10).min(9).max(12),
       SECURITY_JWT_SECRET: Joi.string().required().min(10),
       SECURITY_JWT_TTL: Joi.number().required(),
-
       MONGO_URI: Joi.string().required(),
-
       REDIS_URL: Joi.string().required(),
     })
     .unknown(true);

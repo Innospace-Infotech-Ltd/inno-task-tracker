@@ -9,6 +9,9 @@ import { AuthModule } from './auth/auth.module';
 import { TimestampPlugin } from './common/plugins/timestamp.plugin';
 import { HealthModule } from './health/health.module';
 import { TasksModule } from './tasks/tasks.module';
+import { WinstonModule } from 'nest-winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+import winston from 'winston';
 
 dotenv.config();
 
@@ -28,6 +31,30 @@ dotenv.config();
 
             return connection;
           },
+        };
+      },
+    }),
+    WinstonModule.forRootAsync({
+      inject: [ConfigService],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      useFactory: (config: ConfigService) => {
+        const transport: DailyRotateFile = new DailyRotateFile({
+          filename: 'logs/application-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '7d',
+        });
+
+        return {
+          format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+            winston.format.printf((info) => {
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              return `${info.timestamp} ${info.level}: ${info.message}`;
+            }),
+          ),
+          transports: [new winston.transports.Console(), transport],
         };
       },
     }),

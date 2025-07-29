@@ -2,33 +2,26 @@ import {
   Body,
   Controller,
   Get,
-  Param,
-  Patch,
-  Post,
-  Query,
   HttpException,
   HttpStatus,
   InternalServerErrorException,
   Logger,
-  UseGuards,
+  Param,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
+import { ErrorCode } from 'src/@types/error.types';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { TasksService } from './tasks.service';
 import { TaskQueryDto } from './dto/task-query.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
-import { ErrorCode } from 'src/@types/error.types';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { TasksService } from './tasks.service';
 
 @Controller('tasks')
 export class TasksController {
   private readonly logger = new Logger(TasksController.name);
   constructor(private readonly tasksService: TasksService) {}
 
-  private notImpl() {
-    throw new HttpException('Not implemented', HttpStatus.NOT_IMPLEMENTED);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post()
   async createTask(@Body() taskData: CreateTaskDto) {
     try {
@@ -36,30 +29,53 @@ export class TasksController {
       return createdTask;
     } catch (error) {
       if (error.status) throw error;
+      this.logger.error(
+        `[POST /tasks] Task creation failed with ${error.message}`,
+        error.stack,
+        TasksController.name,
+      );
       throw new InternalServerErrorException();
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async getTasks(@Query() query: TaskQueryDto) {
     try {
+      this.logger.log(
+        `[GET /tasks] Start fetching task list with filters: ${JSON.stringify(query)}`,
+        TasksController.name,
+      );
+
       const tasks = await this.tasksService.getTasks(query);
+
+      this.logger.log(
+        `[GET /tasks] Successfully fetched ${tasks?.meta?.total} tasks.`,
+        TasksController.name,
+      );
       return tasks;
     } catch (error) {
       if (error.status) throw error;
+      console.log(error.stack);
+      this.logger.error(
+        `[GET /tasks] Failed to fetch task list. Error: ${error?.message}`,
+        error.stack,
+        TasksController.name,
+      );
       throw new InternalServerErrorException();
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   async updateTask(
     @Param('id') _id: string,
     @Body() body: UpdateTaskStatusDto,
   ) {
     try {
-      this.logger.log(`Got request to update task status for ID: ${_id}`);
+      this.logger.log(
+        `[PATCH /tasks/${_id}/status] Got request to update task status for ID: ${_id}`,
+        TasksController.name,
+      );
+
       const task = await this.tasksService.findOne({ _id });
       if (!task) {
         throw new HttpException(
@@ -75,12 +91,17 @@ export class TasksController {
         _id,
         body.status,
       );
+
       return updatedTask;
     } catch (error) {
       if (error.status) throw error;
+
       this.logger.error(
-        `Task status update request failed with error: ${error.stack}`,
+        `[PATCH /tasks/${_id}/status] Task status update request failed. Error: ${error.message}`,
+        error.stack,
+        TasksController.name,
       );
+
       throw new InternalServerErrorException();
     }
   }
