@@ -15,7 +15,7 @@ export class TaskQueryDto {
   @ApiProperty({
     required: false,
     example: new Date().toISOString(),
-    description: 'Filter tasks created after this date',
+    description: 'Filter tasks those created after this date',
   })
   @IsOptional()
   @IsDateString()
@@ -24,7 +24,7 @@ export class TaskQueryDto {
   @ApiProperty({
     required: false,
     example: new Date().toISOString(),
-    description: 'Filter tasks created before this date',
+    description: 'Filter tasks those created before this date',
   })
   @IsOptional()
   @IsDateString()

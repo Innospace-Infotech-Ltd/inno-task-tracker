@@ -18,6 +18,7 @@ import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { TasksService } from './tasks.service';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('tasks')
 export class TasksController {
@@ -26,12 +27,14 @@ export class TasksController {
     private readonly tasksService: TasksService,
     @InjectRedis()
     private readonly redis: Redis,
+    private readonly config: ConfigService,
   ) {}
 
   @Post()
   async createTask(@Body() taskData: CreateTaskDto) {
     try {
       const createdTask = await this.tasksService.createTask(taskData);
+      // Clear cached task list to maintain consistency after new task creation
       await this.tasksService.removeTaskFromCache();
       return createdTask;
     } catch (error) {
@@ -45,6 +48,7 @@ export class TasksController {
 
   @Get()
   async getTasks(@Query() query: TaskQueryDto) {
+    // Generate a unique cache key based on the query parameters
     const cacheKey = `tasks:${JSON.stringify(query)}`;
 
     try {
@@ -52,6 +56,7 @@ export class TasksController {
         `[GET /tasks] Start fetching task list with filters: ${JSON.stringify(query)}`,
       );
 
+      // Check if the task list for the current query is already cached
       const cached = await this.redis.get(cacheKey);
       if (cached) {
         this.logger.log(
@@ -62,11 +67,14 @@ export class TasksController {
 
       const tasks = await this.tasksService.getTasks(query);
 
-      await this.redis.set(cacheKey, JSON.stringify(tasks), 'EX', 60);
+      const ttl = this.config.get<number>('redis.redisCacheTTL') || 60;
+      // Store the result in Redis for subsequent requests (cache duration: 60 seconds)
+      await this.redis.set(cacheKey, JSON.stringify(tasks), 'EX', ttl);
 
       this.logger.log(
         `[GET /tasks] Successfully fetched ${tasks?.meta?.total} tasks from DB.`,
       );
+
       return tasks;
     } catch (error) {
       if (error.status) throw error;
@@ -104,6 +112,7 @@ export class TasksController {
         body.status,
       );
 
+      // Clear cached task list to maintain consistency after update the task
       await this.tasksService.removeTaskFromCache();
 
       return updatedTask;
