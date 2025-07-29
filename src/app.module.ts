@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { TasksModule } from './tasks/tasks.module';
+import { RedisModule } from './redis/redis.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import * as dotenv from 'dotenv';
 
@@ -12,7 +13,11 @@ dotenv.config();
 @Module({
   imports: [
     MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://mongo:27017/inno-task-tracker'),
-    HealthModule, AuthModule, TasksModule],
+    RedisModule,
+    HealthModule, 
+    AuthModule, 
+    TasksModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

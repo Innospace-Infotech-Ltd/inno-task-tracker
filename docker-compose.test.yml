@@ -9,14 +9,25 @@ services:
       retries: 10
     command: [ "mongod", "--quiet", "--logpath=/dev/null" ]
 
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api_test:
     build:
       context: .
       target: dev
     environment:
       MONGO_URI: mongodb://mongo:27017/inno-task-tracker-test
+      REDIS_URL: redis://redis:6379
       NODE_ENV: test
     depends_on:
       mongo:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     command: npm run test

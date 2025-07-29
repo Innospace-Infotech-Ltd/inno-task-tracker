@@ -3,17 +3,26 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Task, TaskStatus } from './schemas/task.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TasksService {
-  constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
+  constructor(
+    @InjectModel(Task.name) private taskModel: Model<Task>,
+    private readonly redisService: RedisService,
+  ) {}
 
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     const createdTask = new this.taskModel({
       ...createTaskDto,
       status: createTaskDto.status || TaskStatus.OPEN,
     });
-    return createdTask.save();
+    const task = await createdTask.save();
+    
+    // Invalidate task list cache
+    await this.redisService.delPattern('tasks:*');
+    
+    return task;
   }
 
   async findAll(
@@ -24,8 +33,15 @@ export class TasksService {
     page: number = 1,
     limit: number = 10,
   ) {
-    const query: any = {};
+    const cacheKey = `tasks:${JSON.stringify({ status, dueFrom, dueTo, search, page, limit })}`;
+    
+    // Try to get from cache
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
+    const query: any = {};
     if (status) query.status = status;
     if (search) query.title = { $regex: search, $options: 'i' };
     if (dueFrom || dueTo) {
@@ -40,7 +56,7 @@ export class TasksService {
       this.taskModel.countDocuments(query).exec(),
     ]);
 
-    return {
+    const result = {
       data,
       meta: {
         page,
@@ -49,6 +65,11 @@ export class TasksService {
         totalPages: Math.ceil(total / limit),
       },
     };
+
+    // Cache for 5 minutes
+    await this.redisService.set(cacheKey, JSON.stringify(result), 300);
+    
+    return result;
   }
 
   async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
@@ -56,6 +77,10 @@ export class TasksService {
     if (!task) {
       throw new NotFoundException('Task not found');
     }
+    
+    // Invalidate task list cache
+    await this.redisService.delPattern('tasks:*');
+    
     return task;
   }
 }
