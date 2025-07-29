@@ -8,6 +8,7 @@ import { TaskQueryDto } from './dto/task-query.dto';
 @Injectable()
 export class TasksService {
   constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
+
   async createTask(taskData: CreateTaskDto) {
     const createdTask = new this.taskModel(taskData);
     return await createdTask.save();
@@ -48,5 +49,15 @@ export class TasksService {
     };
 
     return returnData;
+  }
+
+  async findOne(query: any) {
+    return await this.taskModel.findOne(query).exec();
+  }
+
+  async updateTaskStatus(_id: string, status: string) {
+    return await this.taskModel
+      .findByIdAndUpdate(_id, { status }, { new: true })
+      .exec();
   }
 }

@@ -5,8 +5,8 @@ import { TaskStatus } from 'src/@types/task.type';
 export class TaskQueryDto {
   @ApiProperty({
     required: false,
-    example: 'monthly',
-    description: 'Billing cycle to filter by',
+    example: 'OPEN',
+    description: 'Filter tasks by status',
   })
   @IsOptional()
   @IsEnum(TaskStatus)

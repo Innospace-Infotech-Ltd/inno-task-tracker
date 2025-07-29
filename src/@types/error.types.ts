@@ -5,4 +5,5 @@ export enum DbError {
 export enum ErrorCode {
   INVALID_LOGIN_CRED = 401001,
   USER_NOT_FOUND = 404001,
+  TASK_NOT_FOUND = 404002,
 }
