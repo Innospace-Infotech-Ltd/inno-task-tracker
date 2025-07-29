@@ -12,6 +12,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { WinstonModule } from 'nest-winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import winston from 'winston';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 dotenv.config();
 
@@ -50,14 +51,25 @@ dotenv.config();
           format: winston.format.combine(
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
             winston.format.printf((info) => {
+              // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
+              const context = info.context ? `[${info.context}]` : '';
               // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-              return `${info.timestamp} ${info.level}: ${info.message}`;
+              return `${info.timestamp} ${info.level}: ${context} ${info.message}`;
             }),
           ),
           transports: [new winston.transports.Console(), transport],
         };
       },
     }),
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'single',
+        url: config.get<string>('redis.url'),
+      }),
+      imports: [ConfigModule],
+    }),
+
     HealthModule,
     AuthModule,
     TasksModule,

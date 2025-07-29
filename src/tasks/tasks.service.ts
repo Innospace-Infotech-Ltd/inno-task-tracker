@@ -1,13 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Task } from './schemas/task.schema';
 import { Model } from 'mongoose';
 import { TaskQueryDto } from './dto/task-query.dto';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @Injectable()
 export class TasksService {
-  constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
+  private readonly logger = new Logger(TasksService.name);
+  constructor(
+    @InjectModel(Task.name) private taskModel: Model<Task>,
+    @InjectRedis()
+    private readonly redis: Redis,
+  ) {}
 
   async createTask(taskData: CreateTaskDto) {
     const createdTask = new this.taskModel(taskData);
@@ -59,5 +66,13 @@ export class TasksService {
     return await this.taskModel
       .findByIdAndUpdate(_id, { status }, { new: true })
       .exec();
+  }
+
+  async removeTaskFromCache() {
+    const keys = await this.redis.keys('tasks:*');
+    if (keys.length) {
+      await this.redis.del(...keys);
+      this.logger.log(`[CACHE INVALIDATED] Keys: ${keys.join(', ')}`);
+    }
   }
 }

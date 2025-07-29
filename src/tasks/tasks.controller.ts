@@ -16,23 +16,28 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskQueryDto } from './dto/task-query.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { TasksService } from './tasks.service';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @Controller('tasks')
 export class TasksController {
   private readonly logger = new Logger(TasksController.name);
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    @InjectRedis()
+    private readonly redis: Redis,
+  ) {}
 
   @Post()
   async createTask(@Body() taskData: CreateTaskDto) {
     try {
       const createdTask = await this.tasksService.createTask(taskData);
+      await this.tasksService.removeTaskFromCache();
       return createdTask;
     } catch (error) {
       if (error.status) throw error;
       this.logger.error(
         `[POST /tasks] Task creation failed with ${error.message}`,
-        error.stack,
-        TasksController.name,
       );
       throw new InternalServerErrorException();
     }
@@ -40,17 +45,27 @@ export class TasksController {
 
   @Get()
   async getTasks(@Query() query: TaskQueryDto) {
+    const cacheKey = `tasks:${JSON.stringify(query)}`;
+
     try {
       this.logger.log(
         `[GET /tasks] Start fetching task list with filters: ${JSON.stringify(query)}`,
-        TasksController.name,
       );
+
+      const cached = await this.redis.get(cacheKey);
+      if (cached) {
+        this.logger.log(
+          `Fetched tasks from cache memory with Key: ${cacheKey}`,
+        );
+        return JSON.parse(cached);
+      }
 
       const tasks = await this.tasksService.getTasks(query);
 
+      await this.redis.set(cacheKey, JSON.stringify(tasks), 'EX', 60);
+
       this.logger.log(
-        `[GET /tasks] Successfully fetched ${tasks?.meta?.total} tasks.`,
-        TasksController.name,
+        `[GET /tasks] Successfully fetched ${tasks?.meta?.total} tasks from DB.`,
       );
       return tasks;
     } catch (error) {
@@ -58,8 +73,6 @@ export class TasksController {
       console.log(error.stack);
       this.logger.error(
         `[GET /tasks] Failed to fetch task list. Error: ${error?.message}`,
-        error.stack,
-        TasksController.name,
       );
       throw new InternalServerErrorException();
     }
@@ -73,7 +86,6 @@ export class TasksController {
     try {
       this.logger.log(
         `[PATCH /tasks/${_id}/status] Got request to update task status for ID: ${_id}`,
-        TasksController.name,
       );
 
       const task = await this.tasksService.findOne({ _id });
@@ -92,14 +104,14 @@ export class TasksController {
         body.status,
       );
 
+      await this.tasksService.removeTaskFromCache();
+
       return updatedTask;
     } catch (error) {
       if (error.status) throw error;
 
       this.logger.error(
         `[PATCH /tasks/${_id}/status] Task status update request failed. Error: ${error.message}`,
-        error.stack,
-        TasksController.name,
       );
 
       throw new InternalServerErrorException();
