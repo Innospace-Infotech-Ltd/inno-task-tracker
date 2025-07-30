@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { setupSwagger } from './swagger';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -9,6 +11,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
+
+  // Only apply production filters and interceptors in non-test environments
+  if (process.env.NODE_ENV !== 'test') {
+    // Global exception filter for comprehensive error handling
+    app.useGlobalFilters(new AllExceptionsFilter());
+
+    // Global logging interceptor for request/response monitoring
+    app.useGlobalInterceptors(new LoggingInterceptor());
+  }
 
   // Global validation pipe with advanced options
   app.useGlobalPipes(
@@ -33,6 +44,12 @@ async function bootstrap() {
 
   logger.log(`🚀 Application is running on: http://localhost:${port}`);
   logger.log(`📚 Swagger docs available at: http://localhost:${port}/docs`);
+  logger.log(`🏥 Health check available at: http://localhost:${port}/health`);
+  if (process.env.NODE_ENV !== 'test') {
+    logger.log(
+      `🔐 Production-grade features: JWT Auth, Rate Limiting, Caching, Error Handling, Logging`,
+    );
+  }
 }
 bootstrap().catch((error) => {
   console.error('Failed to start application:', error);
