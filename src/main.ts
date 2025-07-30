@@ -42,14 +42,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  logger.log(`🚀 Application is running on: http://localhost:${port}`);
-  logger.log(`📚 Swagger docs available at: http://localhost:${port}/docs`);
-  logger.log(`🏥 Health check available at: http://localhost:${port}/health`);
-  if (process.env.NODE_ENV !== 'test') {
-    logger.log(
-      `🔐 Production-grade features: JWT Auth, Rate Limiting, Caching, Error Handling, Logging`,
-    );
-  }
+  logger.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap().catch((error) => {
   console.error('Failed to start application:', error);
