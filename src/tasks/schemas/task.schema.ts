@@ -1,5 +1,5 @@
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export enum TaskStatus {
   OPEN = 'OPEN',
@@ -20,6 +20,9 @@ export class Task extends Document {
 
   @Prop({ enum: TaskStatus, default: TaskStatus.OPEN })
   status: TaskStatus;
+
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

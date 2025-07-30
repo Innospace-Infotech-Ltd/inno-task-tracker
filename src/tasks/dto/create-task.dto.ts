@@ -12,12 +12,19 @@ export class CreateTaskDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Due date in ISO format', example: '2030-12-31T23:59:59.000Z' })
+  @ApiPropertyOptional({
+    description: 'Due date in ISO format',
+    example: '2030-12-31T23:59:59.000Z',
+  })
   @IsDateString()
   @IsOptional()
   dueDate?: string;
 
-  @ApiPropertyOptional({ enum: TaskStatus, default: TaskStatus.OPEN, description: 'Task status' })
+  @ApiPropertyOptional({
+    enum: TaskStatus,
+    default: TaskStatus.OPEN,
+    description: 'Task status',
+  })
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;

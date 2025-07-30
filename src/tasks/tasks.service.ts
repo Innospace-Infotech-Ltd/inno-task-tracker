@@ -10,11 +10,12 @@ import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 export class TasksService {
   constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
 
-  async create(createTaskDto: CreateTaskDto): Promise<Task> {
+  async create(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
     const taskData: any = {
       title: createTaskDto.title,
       description: createTaskDto.description,
       status: createTaskDto.status || TaskStatus.OPEN,
+      userId: new Types.ObjectId(userId),
     };
 
     if (createTaskDto.dueDate) {
@@ -25,10 +26,10 @@ export class TasksService {
     return task.save();
   }
 
-  async findAll(query: GetTasksQueryDto) {
+  async findAll(query: GetTasksQueryDto, userId: string) {
     const { status, dueFrom, dueTo, search, page = 1, limit = 10 } = query;
 
-    const filter: any = {};
+    const filter: any = { userId: new Types.ObjectId(userId) };
 
     // Status filter
     if (status) {
@@ -74,13 +75,14 @@ export class TasksService {
   async updateStatus(
     id: string,
     updateTaskStatusDto: UpdateTaskStatusDto,
+    userId: string,
   ): Promise<Task> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Task not found');
     }
 
-    const task = await this.taskModel.findByIdAndUpdate(
-      id,
+    const task = await this.taskModel.findOneAndUpdate(
+      { _id: id, userId: new Types.ObjectId(userId) },
       { status: updateTaskStatusDto.status },
       { new: true },
     );

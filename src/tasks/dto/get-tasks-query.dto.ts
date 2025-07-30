@@ -1,25 +1,41 @@
-import { IsOptional, IsEnum, IsDateString, IsString, IsInt, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsEnum,
+  IsDateString,
+  IsString,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskStatus } from '../schemas/task.schema';
 
 export class GetTasksQueryDto {
-  @ApiPropertyOptional({ enum: TaskStatus, description: 'Filter by task status' })
+  @ApiPropertyOptional({
+    enum: TaskStatus,
+    description: 'Filter by task status',
+  })
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
 
-  @ApiPropertyOptional({ description: 'Filter tasks due from this date (ISO string)' })
+  @ApiPropertyOptional({
+    description: 'Filter tasks due from this date (ISO string)',
+  })
   @IsDateString()
   @IsOptional()
   dueFrom?: string;
 
-  @ApiPropertyOptional({ description: 'Filter tasks due until this date (ISO string)' })
+  @ApiPropertyOptional({
+    description: 'Filter tasks due until this date (ISO string)',
+  })
   @IsDateString()
   @IsOptional()
   dueTo?: string;
 
-  @ApiPropertyOptional({ description: 'Search in task titles (case-insensitive)' })
+  @ApiPropertyOptional({
+    description: 'Search in task titles (case-insensitive)',
+  })
   @IsString()
   @IsOptional()
   search?: string;
@@ -31,7 +47,11 @@ export class GetTasksQueryDto {
   @IsOptional()
   page?: number = 1;
 
-  @ApiPropertyOptional({ default: 10, minimum: 1, description: 'Items per page' })
+  @ApiPropertyOptional({
+    default: 10,
+    minimum: 1,
+    description: 'Items per page',
+  })
   @Type(() => Number)
   @IsInt()
   @Min(1)
