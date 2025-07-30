@@ -1,6 +1,22 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, UpdateTaskStatusDto } from './dto/create-task.dto';
 import { TaskStatus } from './schemas/task.schema';
@@ -25,7 +41,12 @@ export class TasksController {
   @Get()
   @ApiOperation({ summary: 'List tasks with filtering and pagination' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved successfully.' })
-  @ApiQuery({ name: 'status', required: false, enum: TaskStatus, example: 'OPEN' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: TaskStatus,
+    example: 'OPEN',
+  })
   @ApiQuery({ name: 'dueFrom', required: false, example: '2024-01-01' })
   @ApiQuery({ name: 'dueTo', required: false, example: '2024-12-31' })
   @ApiQuery({ name: 'search', required: false, example: 'meeting' })
@@ -59,8 +80,13 @@ export class TasksController {
   async update(
     @Param('id') id: string,
     @Body() updateTaskStatusDto: UpdateTaskStatusDto,
-    @Request() req
+    @Request() req,
   ) {
-    return this.tasksService.updateTaskStatus(id, updateTaskStatusDto.status, req.user.userId, req.user.roles);
+    return this.tasksService.updateTaskStatus(
+      id,
+      updateTaskStatusDto.status,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 }

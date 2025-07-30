@@ -18,7 +18,9 @@ describe('/tasks', () => {
   let userJwt: string;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
 
@@ -28,7 +30,10 @@ describe('/tasks', () => {
     const taskModel = app.get(getModelToken(Task.name));
     await taskModel.deleteMany({});
 
-    userJwt = await signupAndLogin(app, { email: 'user@test.com', password: 'password' });
+    userJwt = await signupAndLogin(app, {
+      email: 'user@test.com',
+      password: 'password',
+    });
   });
 
   afterAll(async () => {
@@ -51,7 +56,7 @@ describe('/tasks', () => {
       .post('/tasks')
       .set('Authorization', `Bearer ${userJwt}`)
       .send({ title: 'Task A', status: 'OPEN' });
-    
+
     await request(app.getHttpServer())
       .post('/tasks')
       .set('Authorization', `Bearer ${userJwt}`)

@@ -10,7 +10,9 @@ describe('/auth/signup', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
 
@@ -21,8 +23,6 @@ describe('/auth/signup', () => {
   afterAll(async () => {
     await app.close();
   });
-
-
 
   it('signs up a user with roles', async () => {
     const res = await request(app.getHttpServer())

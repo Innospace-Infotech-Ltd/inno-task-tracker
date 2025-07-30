@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, Role } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
@@ -17,12 +21,15 @@ export class AuthService {
     if (exists) throw new ConflictException('Email already taken');
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await this.userModel.create({ email, passwordHash });
-    return { id: (user._id as Types.ObjectId).toHexString(), email: user.email };
+    return {
+      id: (user._id as Types.ObjectId).toHexString(),
+      email: user.email,
+    };
   }
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userModel.findOne({ email });
-    if (user && await bcrypt.compare(password, user.passwordHash)) {
+    if (user && (await bcrypt.compare(password, user.passwordHash))) {
       const { passwordHash, ...result } = user.toObject();
       return result;
     }
