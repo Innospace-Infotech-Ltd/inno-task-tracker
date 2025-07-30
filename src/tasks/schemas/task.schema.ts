@@ -14,7 +14,7 @@ export class Task extends Document {
     description: 'The title of the task',
     example: 'Buy groceries',
   })
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   title: string;
 
   @ApiPropertyOptional({
@@ -28,15 +28,16 @@ export class Task extends Document {
     description: 'The due date of the task',
     example: '2025-01-01',
   })
-  @Prop()
+  @Prop({ index: true })
   dueDate?: Date;
 
   @ApiProperty({
     description: 'The status of the task',
     example: 'OPEN',
   })
-  @Prop({ enum: TaskStatus, default: TaskStatus.OPEN })
+  @Prop({ enum: TaskStatus, default: TaskStatus.OPEN, index: true })
   status: TaskStatus;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
+TaskSchema.index({ title: 1, dueDate: 1, status: 1 });
