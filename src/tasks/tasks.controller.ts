@@ -1,12 +1,148 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+} from '@nestjs/swagger';
+import { TasksService } from './tasks.service';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { GetTasksQueryDto } from './dto/get-tasks-query.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 
+@ApiTags('Tasks')
 @Controller('tasks')
 export class TasksController {
-  private notImpl() {
-    throw new HttpException('Not implemented', HttpStatus.NOT_IMPLEMENTED);
+  constructor(private readonly tasksService: TasksService) {}
+
+  @Post()
+  @ApiOperation({
+    summary: 'Create a new task',
+    description:
+      'Creates a new task with the provided information. Status defaults to OPEN if not specified.',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Task successfully created',
+    schema: {
+      example: {
+        _id: '507f1f77bcf86cd799439011',
+        title: 'Complete project documentation',
+        description: 'Write comprehensive API documentation',
+        status: 'OPEN',
+        dueDate: '2030-12-31T23:59:59.000Z',
+        createdAt: '2025-01-01T10:00:00.000Z',
+        updatedAt: '2025-01-01T10:00:00.000Z',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Invalid input data' })
+  async create(@Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.create(createTaskDto);
   }
 
-  @Post() create(@Body() _dto: any) { this.notImpl(); }
-  @Get() list(@Query() _q: any) { this.notImpl(); }
-  @Patch(':id/status') update(@Param('id') _id: string, @Body() _dto: any) { this.notImpl(); }
+  @Get()
+  @ApiOperation({
+    summary: 'Get tasks with filtering and pagination',
+    description:
+      'Retrieves a paginated list of tasks with optional filtering by status, due date range, and search term.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Tasks retrieved successfully',
+    schema: {
+      example: {
+        data: [
+          {
+            _id: '507f1f77bcf86cd799439011',
+            title: 'Complete project documentation',
+            description: 'Write comprehensive API documentation',
+            status: 'OPEN',
+            dueDate: '2030-12-31T23:59:59.000Z',
+            createdAt: '2025-01-01T10:00:00.000Z',
+            updatedAt: '2025-01-01T10:00:00.000Z',
+          },
+        ],
+        meta: {
+          page: 1,
+          limit: 10,
+          total: 25,
+          totalPages: 3,
+        },
+      },
+    },
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['OPEN', 'IN_PROGRESS', 'DONE'],
+  })
+  @ApiQuery({
+    name: 'dueFrom',
+    required: false,
+    description: 'ISO date string',
+  })
+  @ApiQuery({ name: 'dueTo', required: false, description: 'ISO date string' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search in task titles',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: 'number',
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: 'number',
+    description: 'Items per page (default: 10)',
+  })
+  async list(@Query() query: GetTasksQueryDto) {
+    return this.tasksService.findAll(query);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({
+    summary: 'Update task status',
+    description: 'Updates the status of a specific task by its ID.',
+  })
+  @ApiParam({ name: 'id', description: 'Task ID (MongoDB ObjectId)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Task status updated successfully',
+    schema: {
+      example: {
+        _id: '507f1f77bcf86cd799439011',
+        title: 'Complete project documentation',
+        description: 'Write comprehensive API documentation',
+        status: 'IN_PROGRESS',
+        dueDate: '2030-12-31T23:59:59.000Z',
+        createdAt: '2025-01-01T10:00:00.000Z',
+        updatedAt: '2025-01-01T10:00:00.000Z',
+      },
+    },
+  })
+  @ApiNotFoundResponse({ description: 'Task not found' })
+  @ApiBadRequestResponse({ description: 'Invalid task ID or status' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+  ) {
+    return this.tasksService.updateStatus(id, updateTaskStatusDto);
+  }
 }
