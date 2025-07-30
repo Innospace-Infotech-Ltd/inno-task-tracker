@@ -57,7 +57,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `${request.method} ${request.url}`,
       JSON.stringify({
         userId: (request as any).user?.userId,
-        error: exception instanceof Error ? exception.stack : exception,
+        stack: exception instanceof Error ? exception.stack : exception,
         ...errorResponse,
       }),
     );

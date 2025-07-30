@@ -5,7 +5,6 @@ import { AppModule } from '../src/app.module';
 
 import request = require('supertest');
 
-
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 

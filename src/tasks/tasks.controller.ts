@@ -36,7 +36,7 @@ import { UserRole, Permission } from '../auth/enums/roles.enum';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)  // Temporarily disabled for tests
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
@@ -54,14 +54,16 @@ export class TasksController {
     description: 'Task successfully created',
     schema: {
       example: {
-        _id: '507f1f77bcf86cd799439011',
+        _id: '688a9237bc2e0a4619b61586',
         title: 'Complete project documentation',
-        description: 'Write comprehensive API documentation',
+        description:
+          'Write comprehensive API documentation for the task management system',
         status: 'OPEN',
-        dueDate: '2030-12-31T23:59:59.000Z',
-        userId: '507f1f77bcf86cd799439012',
-        createdAt: '2025-01-01T10:00:00.000Z',
-        updatedAt: '2025-01-01T10:00:00.000Z',
+        dueDate: '2024-12-31T23:59:59.000Z',
+        userId: '688a922abc2e0a4619b61583',
+        createdAt: '2025-07-30T21:44:23.994Z',
+        updatedAt: '2025-07-30T21:44:23.994Z',
+        __v: 0,
       },
     },
   })

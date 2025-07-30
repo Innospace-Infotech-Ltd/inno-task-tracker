@@ -25,9 +25,14 @@ export class AuthController {
     description: 'User successfully created',
     schema: {
       example: {
-        id: '507f1f77bcf86cd799439011',
-        email: 'john@example.com',
-        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        id: '688a922abc2e0a4619b61583',
+        email: 'john.doe@example.com',
+        role: 'user',
+        accessToken:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODhhOTIyYWJjMmUwYTQ2MTliNjE1ODMiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NTM5MTE4NTYsImV4cCI6MTc1NDUxNjY1Nn0.UQBUQ6rB5E7bnpTB3bgngLYdRRWxbWgq7COd1bfAzwQ',
+        isActive: true,
+        createdAt: '2025-07-30T21:40:00.000Z',
+        updatedAt: '2025-07-30T21:40:00.000Z',
       },
     },
   })
@@ -47,9 +52,12 @@ export class AuthController {
     description: 'User successfully authenticated',
     schema: {
       example: {
-        id: '507f1f77bcf86cd799439011',
-        email: 'john@example.com',
-        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        id: '688a922abc2e0a4619b61583',
+        email: 'john.doe@example.com',
+        role: 'user',
+        accessToken:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODhhOTIyYWJjMmUwYTQ2MTliNjE1ODMiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NTM5MTE4NTYsImV4cCI6MTc1NDUxNjY1Nn0.UQBUQ6rB5E7bnpTB3bgngLYdRRWxbWgq7COd1bfAzwQ',
+        isActive: true,
       },
     },
   })

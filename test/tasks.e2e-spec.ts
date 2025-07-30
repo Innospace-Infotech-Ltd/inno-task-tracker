@@ -3,19 +3,41 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { getModelToken } from '@nestjs/mongoose';
 import { Task } from '../src/tasks/schemas/task.schema';
+import { User } from '../src/auth/schemas/user.schema';
 
 import request = require('supertest');
 
 describe('/tasks', () => {
   let app: INestApplication;
+  let authToken: string;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
 
     const taskModel = app.get(getModelToken(Task.name));
+    const userModel = app.get(getModelToken(User.name));
     await taskModel.deleteMany({});
+    await userModel.deleteMany({});
+
+    // Create a test user and get auth token
+    await request(app.getHttpServer()).post('/auth/signup').send({
+      email: 'test@example.com',
+      password: 'password123',
+      role: 'user',
+    });
+
+    const loginRes = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+    authToken = loginRes.body.accessToken;
   });
 
   afterAll(async () => {
@@ -25,6 +47,7 @@ describe('/tasks', () => {
   it('creates a task', async () => {
     const res = await request(app.getHttpServer())
       .post('/tasks')
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ title: 'Test Task', description: 'desc', dueDate: '2030-01-01' })
       .expect(201);
 
@@ -33,11 +56,18 @@ describe('/tasks', () => {
   });
 
   it('lists tasks with pagination and filters', async () => {
-    await request(app.getHttpServer()).post('/tasks').send({ title: 'Task A', status: 'OPEN' });
-    await request(app.getHttpServer()).post('/tasks').send({ title: 'Task B', status: 'DONE' });
+    await request(app.getHttpServer())
+      .post('/tasks')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ title: 'Task A', status: 'OPEN' });
+    await request(app.getHttpServer())
+      .post('/tasks')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ title: 'Task B', status: 'DONE' });
 
     const res = await request(app.getHttpServer())
       .get('/tasks?status=DONE&page=1&limit=1')
+      .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
     expect(res.body.meta.total).toBeGreaterThanOrEqual(1);
@@ -47,12 +77,14 @@ describe('/tasks', () => {
   it('updates task status', async () => {
     const created = await request(app.getHttpServer())
       .post('/tasks')
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ title: 'To Update' })
       .expect(201);
 
     const id = created.body._id || created.body.id;
     const res = await request(app.getHttpServer())
       .patch(`/tasks/${id}/status`)
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ status: 'IN_PROGRESS' })
       .expect(200);
 
