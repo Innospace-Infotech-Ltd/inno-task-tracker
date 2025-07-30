@@ -26,10 +26,15 @@ export class TasksService {
     return task.save();
   }
 
-  async findAll(query: GetTasksQueryDto, userId: string) {
+  async findAll(query: GetTasksQueryDto, userId?: string) {
     const { status, dueFrom, dueTo, search, page = 1, limit = 10 } = query;
 
-    const filter: any = { userId: new Types.ObjectId(userId) };
+    const filter: any = {};
+
+    // Only filter by userId if provided (for regular users)
+    if (userId) {
+      filter.userId = new Types.ObjectId(userId);
+    }
 
     // Status filter
     if (status) {

@@ -28,15 +28,22 @@ import { GetTasksQueryDto } from './dto/get-tasks-query.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User, UserPayload } from '../auth/decorators/user.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+import { UserRole, Permission } from '../auth/enums/roles.enum';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)  // Temporarily disabled for tests
+// @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)  // Temporarily disabled for tests
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
+  @Roles(UserRole.USER, UserRole.MANAGER, UserRole.ADMIN)
+  @RequirePermissions(Permission.CREATE_TASK)
   @ApiOperation({
     summary: 'Create a new task',
     description:
@@ -70,6 +77,8 @@ export class TasksController {
 
   @Get()
   @UseInterceptors(CacheInterceptor)
+  @Roles(UserRole.USER, UserRole.MANAGER, UserRole.ADMIN)
+  @RequirePermissions(Permission.READ_TASK)
   @ApiOperation({
     summary: 'Get tasks with filtering and pagination',
     description:
@@ -136,6 +145,8 @@ export class TasksController {
   }
 
   @Patch(':id/status')
+  @Roles(UserRole.USER, UserRole.MANAGER, UserRole.ADMIN)
+  @RequirePermissions(Permission.UPDATE_TASK)
   @ApiOperation({
     summary: 'Update task status',
     description:

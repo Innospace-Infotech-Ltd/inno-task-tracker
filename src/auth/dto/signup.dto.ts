@@ -1,10 +1,17 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../schemas/user.schema';
 
 export class SignupDto {
   @ApiProperty({
     description: 'User email address',
-    example: 'john@example.com',
+    example: 'user@example.com',
   })
   @IsEmail()
   email: string;
@@ -13,7 +20,17 @@ export class SignupDto {
     description: 'User password (minimum 6 characters)',
     example: 'password123',
   })
-  @IsNotEmpty()
+  @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({
+    description: 'User role',
+    enum: UserRole,
+    example: UserRole.USER,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
 }

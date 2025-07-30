@@ -28,8 +28,11 @@ describe('/auth/signup', () => {
       .send({ email: 'a@a.com', password: 'secret123' })
       .expect(201);
 
-    expect(res.body).toHaveProperty('id');
-    expect(res.body.email).toBe('a@a.com');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body).toHaveProperty('access_token');
+    expect(res.body.user).toHaveProperty('id');
+    expect(res.body.user.email).toBe('a@a.com');
+    expect(res.body.user.role).toBe('user');
   });
 
   it('rejects duplicate email', async () => {
