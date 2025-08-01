@@ -1,11 +1,4 @@
-import {
-  IsEnum,
-  IsOptional,
-  IsISO8601,
-  IsString,
-  IsNumber,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsNumber, Min } from 'class-validator';
 import { TaskStatus } from '../schemas/task.schema';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -25,21 +18,23 @@ export class FindTaskDto {
 
   @ApiProperty({
     required: false,
-    description: 'Filter tasks due from this date (ISO 8601)',
+    description: 'Filter tasks due from this date',
     example: '2025-08-01T00:00:00Z',
+    type: Date,
   })
   @IsOptional()
-  @IsISO8601()
-  dueFrom?: string;
+  @Type(() => Date)
+  dueFrom?: Date;
 
   @ApiProperty({
     required: false,
-    description: 'Filter tasks due until this date (ISO 8601)',
+    description: 'Filter tasks due until this date',
     example: '2025-08-31T23:59:59Z',
+    type: Date,
   })
   @IsOptional()
-  @IsISO8601()
-  dueTo?: string;
+  @Type(() => Date)
+  dueTo?: Date;
 
   @ApiProperty({
     required: false,

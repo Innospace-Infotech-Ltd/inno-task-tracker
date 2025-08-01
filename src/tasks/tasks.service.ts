@@ -9,6 +9,7 @@ import { FindTaskDto } from './dto/find-task.dto';
 export class TasksService {
   constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
 
+  /** Creates a new task */
   async create(taskDto: CreateTaskDto): Promise<Task> {
     try {
       const task = new this.taskModel(taskDto);
@@ -18,6 +19,7 @@ export class TasksService {
     }
   }
 
+  /** Finds tasks with filtering and pagination */
   async findAll(query: FindTaskDto): Promise<{
     data: Task[];
     meta: { page: number; limit: number; total: number; totalPages: number };
@@ -26,6 +28,7 @@ export class TasksService {
       const { status, dueFrom, dueTo, search, page = 1, limit = 10 } = query;
       const filter: FilterQuery<Task> = {};
 
+      // Apply filters
       if (status) {
         filter.status = status;
       }
@@ -64,6 +67,7 @@ export class TasksService {
     }
   }
 
+  /** Updates task status by ID */
   async updateStatus(id: mongo.ObjectId, status: TaskStatus): Promise<Task> {
     const task = await this.taskModel.findByIdAndUpdate(
       id,
