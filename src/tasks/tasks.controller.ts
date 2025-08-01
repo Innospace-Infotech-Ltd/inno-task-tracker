@@ -1,12 +1,42 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { TasksService } from './tasks.service';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { FindTaskDto } from './dto/find-task.dto';
+import { mongo } from 'mongoose';
 
 @Controller('tasks')
 export class TasksController {
-  private notImpl() {
-    throw new HttpException('Not implemented', HttpStatus.NOT_IMPLEMENTED);
+  constructor(private readonly tasksService: TasksService) {}
+
+  @Post()
+  create(@Body() taskDto: CreateTaskDto) {
+    try {
+      return this.tasksService.create(taskDto);
+    } catch (error: any) {
+      throw new Error('Error creating task: ' + error.message);
+    }
   }
 
-  @Post() create(@Body() _dto: any) { this.notImpl(); }
-  @Get() list(@Query() _q: any) { this.notImpl(); }
-  @Patch(':id/status') update(@Param('id') _id: string, @Body() _dto: any) { this.notImpl(); }
+  @Get()
+  findAll(@Query() query: FindTaskDto) {
+    return this.tasksService.findAll(query);
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: mongo.ObjectId,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+  ) {
+    return this.tasksService.updateStatus(id, updateTaskStatusDto.status);
+  }
 }
